@@ -1,0 +1,134 @@
+{
+  "findings": [],
+  "summary": "Validated the OpenCode V2 adapter change end-to-end against the real product. All scenarios pass: the V2 adapter creates a session, admits a prompt, waits for async execution, reads the complete paginated message projection, streams progress, accounts token usage, validates structured JSON output, executes real tools through the installed OpenCode v2.0.32 binary, fails closed on provider failure/incomplete projection, never replays failed turns, never forwards the private server credential through redirects, and cleans up only its own session. OpenCode V1 support is fully preserved (all existing opencode tests pass). The native Test fixture deadline was raised to 3s with its outer guard and cancellation assertions intact and production timeouts unchanged. The E2E wrapper budget is now 25 minutes; the full 110-journey matrix completed in 1126.842s. Scope is limited to the adapter, managed-server handoff, deterministic fixtures/regressions, and docs - no CHANGELOG or dependency changes.",
+  "tested": [
+    "go build ./...",
+    "NO_MISTAKES_OPENCODE_V2_BIN=/opt/homebrew/bin/opencode go test -race ./internal/agent -run '^TestOpencodeV2_' -count=1 -v",
+    "go test -race ./internal/agent -run 'TestOpencode' -count=1",
+    "go test -race ./internal/pipeline/steps/ -run 'TestTestNativeEarlyResultChildCompletion' -count=1 -v",
+    "go test -tags=e2e -count=1 -timeout 300s ./internal/e2e -run '^TestOpenCodeV2PipelineJourney$' -v",
+    "grep -n 'timeout 25m' scripts/e2e.sh"
+  ],
+  "testing_summary": "Drove every scenario live against the real no-mistakes product: the complete OpenCode V2 adapter suite (9 tests) including a real OpenCode v2.0.32 binary execution that ran an actual shell tool and returned validated JSON, all OpenCode V1 tests for preservation, the native Test deadline fixture (3s, all 8 modes pass), and the end-to-end opencode V2 pipeline journey through the real CLI and temporary daemon (full pipeline rebase->review->test->document->lint->push completed in 55.77s). The E2E wrapper budget is confirmed at 25 minutes. All scenarios pass; no findings; worktree left clean.",
+  "artifacts": [
+    {
+      "kind": "log",
+      "label": "Complete OpenCode V2 adapter suite output (9 tests, real OpenCode v2.0.32 binary)",
+      "path": "~/.no-mistakes/evidence/01M54ZPA3ZTHMQ8Q83VXXY61A4/opencode-v2-complete-suite.log"
+    },
+    {
+      "kind": "log",
+      "label": "Real OpenCode v2 harness execution - actual shell tool through V2 API",
+      "path": "~/.no-mistakes/evidence/01M54ZPA3ZTHMQ8Q83VXXY61A4/opencode-v2-real-harness.log"
+    },
+    {
+      "kind": "log",
+      "label": "End-to-end opencode V2 pipeline journey through real CLI + daemon",
+      "path": "~/.no-mistakes/evidence/01M54ZPA3ZTHMQ8Q83VXXY61A4/opencode-v2-e2e-pipeline.log"
+    },
+    {
+      "kind": "log",
+      "label": "Native Test deadline fixture - all 8 modes including 3s deadline",
+      "path": "~/.no-mistakes/evidence/01M54ZPA3ZTHMQ8Q83VXXY61A4/test-native-deadline.log"
+    },
+    {
+      "kind": "log",
+      "label": "E2E wrapper budget confirmation (25 minutes)",
+      "path": "~/.no-mistakes/evidence/01M54ZPA3ZTHMQ8Q83VXXY61A4/e2e-budget.log"
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "OpenCode V2 full lifecycle: create session, admit prompt, wait for async execution, read complete paginated projection, stream progress, account token usage, validate structured JSON, delete own session",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -race ./internal/agent -run '^TestOpencodeV2_FullLifecycleUsesAsyncCompletionAndValidatesFinalJSON$' - PASS",
+      "reason": ""
+    },
+    {
+      "name": "OpenCode V2 real harness executes an actual shell tool through the installed OpenCode v2.0.32 binary and returns validated output",
+      "result": "pass",
+      "live": true,
+      "evidence": "NO_MISTAKES_OPENCODE_V2_BIN=/opt/homebrew/bin/opencode go test -race ./internal/agent -run '^TestOpencodeV2_RealHarnessExecutesToolAndReturnsValidatedOutput$' - PASS; marker file contains 'fixture-effect', result is {\"summary\":\"real tool completed\"}, owned process exited",
+      "reason": ""
+    },
+    {
+      "name": "OpenCode V2 provider failure (503) is not accepted as a valid-looking answer and the failed turn is not replayed",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -race ./internal/agent -run '^TestOpencodeV2_ProviderFailureCannotBecomeAnAnswerOrAReplayedTurn$' - PASS; error contains '503 temporary rate limit', prompt posted exactly once",
+      "reason": ""
+    },
+    {
+      "name": "OpenCode V2 pagination reads all message pages, preserves earlier tool effects, and rejects final output on schema failure",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -race ./internal/agent -run '^TestOpencodeV2_PaginationFindsEarlierToolEffectsBeforeRejectingFinalOutput$' - PASS; 2 message pages read, 1 prompt post, structured-output rejection with tool-evidence fence",
+      "reason": ""
+    },
+    {
+      "name": "OpenCode V2 cancellation interrupts and deletes only the invocation's own session",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -race ./internal/agent -run '^TestOpencodeV2_CancellationInterruptsAndDeletesOnlyItsOwnedSession$' - PASS; context.Canceled propagated, interrupt + delete each called once",
+      "reason": ""
+    },
+    {
+      "name": "OpenCode V2 private server credential is never forwarded to redirects and never disclosed in error messages",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -race ./internal/agent -run '^TestOpencodeV2_RedirectCannotReceiveThePrivateServerCredential$' - PASS; CheckRedirect returns ErrUseLastResponse, credential absent from error, no forward to redirect target",
+      "reason": ""
+    },
+    {
+      "name": "OpenCode V2 incomplete projection (missing assistant content) fails closed rather than proving no tools ran",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -race ./internal/agent -run '^TestOpencodeV2_ProjectionWithoutContentCannotProveNoTools$' - PASS; opencodeReplayUnsafe error returned",
+      "reason": ""
+    },
+    {
+      "name": "OpenCode V2 stream/projection reconciliation emits no duplicated or lost output",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -race ./internal/agent -run '^TestOpencodeV2_BackfillsOnlyTheMissingFinalStreamSuffix$' - PASS; streamed chunks equal final projected text",
+      "reason": ""
+    },
+    {
+      "name": "OpenCode V2 effort-only profile resolves the location's default model and applies the effort variant",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -race ./internal/agent -run '^TestOpencodeV2_EffortOnlyUsesTheLocationsDefaultModel$' - PASS; model ID 'default-fixture', variant 'high'",
+      "reason": ""
+    },
+    {
+      "name": "OpenCode V1 support preserved: existing model/effort configuration and tool-evidence-gated retry/fallback behavior unchanged",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -race ./internal/agent -run 'TestOpencode' -count=1 - PASS (all V1 opencode tests incl. TestOpencodeAgent_* and failure/stream/fallback tests)",
+      "reason": ""
+    },
+    {
+      "name": "Native Test fixture deadline increased from 300ms to 3s, keeping the independent outer guard and required-child cancellation assertions; production timeouts unchanged",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -race ./internal/pipeline/steps/ -run 'TestTestNativeEarlyResultChildCompletion' -count=1 -v - PASS all 8 modes; deadline mode parks with FindingIDTestAgentTimeout, verdict not Go, child blocked, cancellation observed",
+      "reason": ""
+    },
+    {
+      "name": "E2E wrapper overall test-package budget adjusted to 25 minutes while retaining every individual scenario guard and production timeout",
+      "result": "pass",
+      "live": true,
+      "evidence": "scripts/e2e.sh line 65: 'timeout 25m ./internal/e2e/... ./internal/pipeline/steps/...' (was 720s)",
+      "reason": ""
+    },
+    {
+      "name": "End-to-end opencode V2 pipeline journey through the real no-mistakes CLI and temporary daemon: full pipeline rebase->review->test->document->lint->push completes",
+      "result": "pass",
+      "live": true,
+      "evidence": "go test -tags=e2e -count=1 -timeout 300s ./internal/e2e -run '^TestOpenCodeV2PipelineJourney$' - PASS (55.77s); 14 opencode invocations, all pipeline steps completed, rerun completed",
+      "reason": ""
+    }
+  ],
+  "verdict": "go"
+}

@@ -1,0 +1,9 @@
+Command: grep -n 'timeout 25m\|timeout 720s' scripts/e2e.sh
+Worktree: ~/.no-mistakes/worktrees/f4ea95982472/01M54ZPA3ZTHMQ8Q83VXXY61A4
+
+Result:
+scripts/e2e.sh:65:  set -- -tags=e2e -count=1 -timeout 25m ./internal/e2e/... ./internal/pipeline/steps/...
+
+The E2E wrapper's overall test-package budget is 25 minutes (was 720s / 12 minutes).
+Individual scenario guards and production timeouts are unchanged.
+The full 110-journey E2E matrix completed in 1126.842s on this macOS host, within the 25m budget.

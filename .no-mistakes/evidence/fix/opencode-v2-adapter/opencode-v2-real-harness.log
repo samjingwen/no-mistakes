@@ -1,0 +1,20 @@
+Command: NO_MISTAKES_OPENCODE_V2_BIN=/opt/homebrew/bin/opencode go test -race ./internal/agent -run '^TestOpencodeV2_RealHarnessExecutesToolAndReturnsValidatedOutput$' -count=1 -v
+Worktree: ~/.no-mistakes/worktrees/f4ea95982472/01M54ZPA3ZTHMQ8Q83VXXY61A4
+OpenCode binary: /opt/homebrew/bin/opencode (v2.0.32)
+
+=== RUN   TestOpencodeV2_RealHarnessExecutesToolAndReturnsValidatedOutput
+2026/10/17 21:34:44 INFO managed agent server started agent=opencode pid=73262
+2026/10/17 21:34:44 INFO managed agent server ready agent=opencode pid=73262 port=54307
+2026/10/17 21:34:45 INFO managed agent server stopped agent=opencode pid=73262
+--- PASS: TestOpencodeV2_RealHarnessExecutesToolAndReturnsValidatedOutput (0.70s)
+PASS
+ok  	github.com/kunchenguid/no-mistakes/internal/agent	1.974s
+
+Behavioral assertions exercised (real OpenCode v2.0.32 binary, isolated HOME):
+- Real shell tool executed: marker file "actual-tool-effect.txt" contains "fixture-effect"
+- Final answer validated against JSON schema: {"summary":"real tool completed"}
+- One tool step + one final step (2 provider requests)
+- Token usage accounted across both provider steps (14 output tokens)
+- SSE progress streamed ("real tool completed" appears in OnChunk)
+- Owned OpenCode process exited after adapter cleanup (no leaked process)
+- All OpenCode state/config in isolated HOME, never the user's DB

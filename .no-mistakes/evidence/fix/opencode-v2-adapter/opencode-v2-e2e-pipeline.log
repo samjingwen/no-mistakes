@@ -1,0 +1,32 @@
+Command: go test -tags=e2e -count=1 -timeout 300s ./internal/e2e -run '^TestOpenCodeV2PipelineJourney$' -v
+Worktree: ~/.no-mistakes/worktrees/f4ea95982472/01M54ZPA3ZTHMQ8Q83VXXY61A4
+Fixture: FAKEAGENT_OPENCODE_V2=1 (OpenCode v2 fake server)
+
+=== RUN   TestOpenCodeV2PipelineJourney
+    journey_test.go:324: agent invocations: 14
+          0) opencode: Workspace boundary (important):
+          ...
+          13) opencode: Workspace boundary (important):
+    journey_test.go:325: step outcomes:
+    journey_test.go:327:   1 intent    skipped
+    journey_test.go:327:   2 rebase    completed
+    journey_test.go:327:   3 review    completed
+    journey_test.go:327:   4 test      completed
+    journey_test.go:327:   5 document  completed
+    journey_test.go:327:   6 lint      completed
+    journey_test.go:327:   7 push      completed
+    journey_test.go:327:   8 pr        skipped
+    journey_test.go:327:   9 ci        skipped
+    journey_test.go:329: rerun outcome: 01M5511GD8H51K8B8B5N61YJEW completed
+--- PASS: TestOpenCodeV2PipelineJourney (55.77s)
+PASS
+ok  	github.com/kunchenguid/no-mistakes/internal/e2e	56.344s
+
+Behavioral assertions exercised (real no-mistakes CLI + temporary daemon):
+- nm init from worktree, daemon started, gate remote present
+- Push to gate triggered post-receive hook and run creation
+- Run completed with pipeline steps in order: rebase -> review -> test -> document -> lint -> push
+- All completed steps have started_at, completed_at, positive duration_ms
+- PR and CI skipped (no SCM provider on file:// origin), no PR created
+- 14 opencode agent invocations across review/test/document/lint
+- Rerun outcome: completed

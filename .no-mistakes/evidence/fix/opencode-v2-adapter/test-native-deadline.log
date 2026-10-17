@@ -1,0 +1,17 @@
+Command: go test -race ./internal/pipeline/steps/ -run 'TestTestNativeEarlyResultChildCompletion' -count=1 -v
+Worktree: ~/.no-mistakes/worktrees/f4ea95982472/01M54ZPA3ZTHMQ8Q83VXXY61A4
+
+All 8 subtests PASS (9.54s total):
+- early-exit: refused (native check completion unverified), NeedsApproval=true
+- early-exit-redirected: refused, NeedsApproval=true
+- early-repair: refused (fix round), NeedsApproval=true
+- success: passed, child completion receipt present
+- zombie-success: passed despite unreaped group member
+- failure: exit status 7 propagated
+- deadline: 3s budget (was 300ms), parks with FindingIDTestAgentTimeout, verdict not Go, child blocked past deadline, cancellation observed
+
+Key assertion for the deadline change:
+- TestAgentTimeout = 3 * time.Second (increased from 300ms)
+- TestAgentWorkingTimeout = 3 * time.Second (increased from 300ms)
+- Independent 10s outer guard and required-child cancellation assertions preserved
+- Production timeout defaults unchanged (only the test fixture budget)

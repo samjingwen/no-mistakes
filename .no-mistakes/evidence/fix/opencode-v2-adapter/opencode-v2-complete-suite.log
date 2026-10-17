@@ -1,0 +1,34 @@
+Command: NO_MISTAKES_OPENCODE_V2_BIN=/opt/homebrew/bin/opencode go test -race ./internal/agent -run '^TestOpencodeV2_' -count=1 -v
+Worktree: ~/.no-mistakes/worktrees/f4ea95982472/01M54ZPA3ZTHMQ8Q83VXXY61A4
+OpenCode binary: /opt/homebrew/bin/opencode (v2.0.32)
+
+=== RUN   TestOpencodeV2_RealHarnessExecutesToolAndReturnsValidatedOutput
+... PASS (0.70s)
+=== RUN   TestOpencodeV2_FullLifecycleUsesAsyncCompletionAndValidatesFinalJSON
+... PASS (0.00s)
+=== RUN   TestOpencodeV2_EffortOnlyUsesTheLocationsDefaultModel
+... PASS (0.00s)
+=== RUN   TestOpencodeV2_ProviderFailureCannotBecomeAnAnswerOrAReplayedTurn
+... PASS (0.00s)
+=== RUN   TestOpencodeV2_PaginationFindsEarlierToolEffectsBeforeRejectingFinalOutput
+... PASS (0.01s)
+=== RUN   TestOpencodeV2_CancellationInterruptsAndDeletesOnlyItsOwnedSession
+... PASS (0.00s)
+=== RUN   TestOpencodeV2_ProjectionWithoutContentCannotProveNoTools
+... PASS (0.00s)
+=== RUN   TestOpencodeV2_BackfillsOnlyTheMissingFinalStreamSuffix
+... PASS (0.00s)
+=== RUN   TestOpencodeV2_RedirectCannotReceiveThePrivateServerCredential
+... PASS (0.00s)
+PASS
+ok  	github.com/kunchenguid/no-mistakes/internal/agent	2.281s
+
+Scenarios covered:
+- Full lifecycle: session create -> prompt admit -> wait -> paginated message projection -> stream progress -> JSON validation -> token accounting -> session cleanup
+- Effort-only profile resolves location's default model, applies effort variant
+- Provider failure (503) is not accepted as an answer and not replayed
+- Pagination reads all pages; earlier tool effects preserved; schema failure fails closed
+- Cancellation interrupts and deletes only the invocation's own session
+- Incomplete projection (missing assistant content) fails closed
+- Stream/projection reconciliation: no duplicated or lost output
+- Private server credential never follows redirects and never appears in error messages
